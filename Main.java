@@ -39,21 +39,22 @@ public class Main {
     writer.close();
   }
 
-  public static String readInfo(String imagePath) throws TesseractException {
-    Tesseract tesseract = new Tesseract();
-    tesseract.setDatapath("path/to/tessdata");
-    BufferedImage image = null;
+  public static String readInfo(String imagePath) throws IOException {
+    String line;
+    StringBuilder sb = new StringBuilder();
 
-    try {
-      image = ImageIO.read(new File(imagePath));
-    } catch (IOException e) {
-      e.printStackTrace();
+    String[] cmd = {"C:\\Users\\Grandkids\\AppData\\Local\\Programs\\Python\\Python311\\python.exe", "tesseract_ocr.py", imagePath};
+
+    ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+    Process process = processBuilder.start();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+    while ((line = reader.readLine()) != null) {
+      sb.append(line);
     }
 
-    String result = tesseract.doOCR(image);
-    return result;
+    return sb.toString();
   }
-
 
   public static void main(String[] args) {
     String inputFilename = "barcodes.txt";
