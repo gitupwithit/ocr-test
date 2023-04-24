@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class Main {
-
   public static List<String> readBarcodesFromFile(String filename) throws IOException {
     List<String> barcodes = new ArrayList<>();
     BufferedReader reader = new BufferedReader(new FileReader(filename));
@@ -39,21 +38,13 @@ public class Main {
     writer.close();
   }
 
-  public static String readInfo(String imagePath) throws IOException {
-    String line;
-    StringBuilder sb = new StringBuilder();
-
-    String[] cmd = {"C:\\Users\\Grandkids\\AppData\\Local\\Programs\\Python\\Python311\\python.exe", "tesseract_ocr.py", imagePath};
-
-    ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-    Process process = processBuilder.start();
-    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-    while ((line = reader.readLine()) != null) {
-      sb.append(line);
-    }
-
-    return sb.toString();
+  public static String readInfo(String imagePath) throws TesseractException {
+    File imageFile = new File(imagePath);
+    ITesseract instance = new Tesseract();
+    instance.setDatapath("tessdata");
+    instance.setLanguage("eng");
+    String result = instance.doOCR(imageFile);
+    return result;
   }
 
   public static void main(String[] args) {
@@ -73,23 +64,22 @@ public class Main {
       Rectangle infoRect = new Rectangle(x, y, width, height);
 
       for (String barcode : barcodes) {
-          enterBarcode(robot, barcode);
-          try {
-              Thread.sleep(1000); // Wait for the application to process the barcode
-          } catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-
-          BufferedImage image = robot.createScreenCapture(infoRect);
-          String imagePath = "captured_image.png";
-          ImageIO.write(image, "png", new File(imagePath));
-
-          String info = readInfo(imagePath);
-          saveInfoToFile(info, outputFilename);
+        enterBarcode(robot, barcode);
+        try {
+            Thread.sleep(1000); // Wait for the application to process the barcode
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+        BufferedImage image = robot.createScreenCapture(infoRect);
+        String imagePath = "captured_image.png";
+        ImageIO.write(image, "png", new File(imagePath));
+
+        String info = readInfo(imagePath);
+        saveInfoToFile(info, outputFilename);
+      }
     } catch (Exception e) {
         e.printStackTrace();
     }
   }
-
 }
